@@ -1,0 +1,140 @@
+<html>
+    <head>
+        <title>Hamming code</title>
+        <script>
+            function Calculation(arr, r){
+                let rbits = 'Control bits:' + '\n';
+                for (let i = 0; i < r; i++) { 
+                    let x = Math.pow(2, i); 
+                    for (let j = 1; j < arr.length; j++) { 
+                        if (((j >> i) & 1) == 1) { 
+                            if (x != j) 
+                                arr[x] = arr[x] ^ arr[j]; 
+                        } 
+                    } 
+                   rbits += "r" + x + " = " + arr[x] + '\n'; 
+                }
+                document.getElementById('answer').value = rbits;
+                return arr; 
+            }
+
+            function GenerateCode(str, M, r){
+                let arr = new Array(r + M + 1); 
+                let j = 0; 
+                for (let i = 1; i < arr.length; i++) { 
+                    if ((Math.ceil(Math.log(i) / Math.log(2)) - Math.floor(Math.log(i) / Math.log(2))) == 0){ 
+                        arr[i] = 0; 
+                    } 
+                    else { 
+                        arr[i] = str.charAt(j) - '0';
+                        j++; 
+                    } 
+                } 
+                return arr; 
+            } 
+
+            function GetCode(){
+                let str = document.getElementById('input').value;
+                let strUnique = [...new Set(str.split(''))]; 
+                if ((strUnique.length == 2 && (strUnique.includes('1') && strUnique.includes('0')) || (strUnique.length == 1  && (strUnique.includes('1') || strUnique.includes('0'))))){
+                    let M = str.length; 
+                    let r = 1; 
+                    while (Math.pow(2, r) < (M + r + 1)) { 
+                        r++; 
+                    } 
+                    let arr = GenerateCode(str, M, r); 
+                    arr = Calculation(arr, r).join(''); 
+                    document.getElementById('message').value = arr;
+                } else {
+                    document.getElementById('answer').value = 'You can use only 1 and 0 values in code';
+                }
+            }
+
+            function CalcXOR(str){ 
+                let bit = Number(str[0]);
+                for (let i = 1; i < str.length; i++){
+                    bit = bit^Number(str[i]);
+                }
+                return bit;
+            }
+
+            function CatchError(str){
+                let M = str.length; 
+                let r = 2; 
+                let errPos = 0;
+                let mes = '';
+                while (Math.pow(2, r) - 1 < M) { 
+                    r++; 
+                }
+                for (let i = 0; i < r; i++){
+                    let j = Math.pow(2, i)-1;
+                    let k = Math.pow(2, i);
+                    let p = new Array();
+                    while (j < str.length){
+                        for (let l = 0; l < k; l++){
+                            p.push(str[j]);
+                            j++;
+                        }
+                        j += Math.pow(2, i)
+                    }
+                    errPos += CalcXOR(p.join(''))*Math.pow(2,i);
+                }
+                if (errPos == 0){
+                    mes += 'No errors detected';
+                } else {
+                    mes += 'Error on the position ' + errPos.toString();
+                    if (str[M-errPos] == 0){
+                        str[M-errPos] = 1;
+                    } else {
+                        str[M-errPos] = 0; 
+                    }
+                }
+                return [str, mes];
+            }
+
+            function PrintDecoded(str){
+                str = str.split('');
+                let M = str.length; 
+                let r = 2;
+                while (Math.pow(2, r) - 1 < M) { 
+                    r++; 
+                }
+                for (let i = 0; i < r; i++){
+                    str[Math.pow(2, i)-1] = undefined;
+                }
+                str = str.join('');
+                return str;
+            }
+
+            function Decode(){
+                let str = document.getElementById('decode').value;
+                let strUnique = [...new Set(str.split(''))];
+                if ((strUnique.length == 2 && (strUnique.includes('1') && strUnique.includes('0')) || (strUnique.length == 1  && (strUnique.includes('1') || strUnique.includes('0'))))){
+                    if (str.length < 3){
+                        document.getElementById('answer').value = 'Code should be at least 3 characters';
+                    } else {
+                        let [catched, mes] = CatchError(str);
+                        let decoded = PrintDecoded(catched);
+                        document.getElementById('message').value = decoded;
+                        document.getElementById('answer').value = mes;
+                    }
+                } else {
+                    document.getElementById('answer').value = 'You can use only 1 and 0 values in code';
+                }
+            }
+        </script>
+    </head>
+    <body>
+        <h1>Hamming code</h1>
+        <h2>Code</h2>
+        <input type="text" name="input" id="input" maxlength="4">
+        <p><input type="button" value="Code" onclick="GetCode()"></p>
+        <h2>Answer</h2>
+        <input type="text" id="message">
+        <h2>Decode</h2>
+        <p><input type="button" value="Decode" onclick="Decode()"></p>
+        <p><input type="text" name="decode" id="decode" maxlength="7"></p>
+        <h2>Notes</h2>
+        <textarea name="answer" id="answer" cols="30" rows="10"></textarea>
+    </body>
+</html>
