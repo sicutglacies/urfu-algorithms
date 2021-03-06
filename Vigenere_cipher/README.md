@@ -10,4 +10,4 @@ language - ru for Russian, en for English
 output.txt - txt file with encoded sequence\
 result.txt - empty file where result will be saved\
 language - ru for Russian, en for English
-### Example: node caesar.txt out.txt res.txt en
+### Example: node vigenere.txt out.txt res.txt en
